@@ -31,6 +31,8 @@ func (app *App) Run() error {
 	if err != nil {
 		return err
 	}
+
+	// database migration exec.
 	err = database.MigrateDB(db)
 	if err != nil {
 		return err
