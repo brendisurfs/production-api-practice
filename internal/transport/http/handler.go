@@ -1,7 +1,9 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -13,6 +15,11 @@ import (
 type Handler struct {
 	Router  *mux.Router
 	Service *comment.Service
+}
+
+// Response - an object to store responses from our api.
+type Response struct {
+	Message string
 }
 
 // NewHandler - returns pointer to a Handler
@@ -32,8 +39,15 @@ func (h *Handler) SetupRoutes() {
 	h.Router.HandleFunc("/api/comment/{id}", h.GetComment).Methods("GET")
 	h.Router.HandleFunc("/api/comment/{id}", h.DeleteComment).Methods("DELETE")
 	h.Router.HandleFunc("/api/comment/{id}", h.UpdateComment).Methods("PUT")
+
 	h.Router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "I am alive!")
+		// this will format so it looks like actual json, not mush.
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		// take note of this, this is cool.
+		if err := json.NewEncoder(w).Encode(Response{Message: "I am alive and well :0"}); err != nil {
+			log.Fatal(err)
+		}
 	})
 }
 
@@ -61,13 +75,13 @@ func (h *Handler) PostComment(w http.ResponseWriter, r *http.Request) {
 
 // GetComment - retrieve comment by id.
 func (h *Handler) GetComment(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
 	// retrieve the id that we wish to get from the comment list.
 	vars := mux.Vars(r)
-
 	// takes out from the request parms.BUT returns a string.
 	id := vars["id"]
 
-	// lets parse that string.
 	i, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
 		fmt.Fprintf(w, "unable to parse uint from id.")
@@ -77,8 +91,9 @@ func (h *Handler) GetComment(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Fprintf(w, "error retrieving comment by id.")
 	}
-	// if all good...
-	fmt.Fprintf(w, "%+v", comment)
+	if err := json.NewEncoder(w).Encode(comment); err != nil {
+		panic(err)
+	}
 }
 
 // UpdateComment - updates comment by id
