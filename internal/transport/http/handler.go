@@ -35,7 +35,7 @@ func (h *Handler) SetupRoutes() {
 
 	h.Router = mux.NewRouter()
 
-	h.Router.HandleFunc("/api/comments", h.GetAllComments).Methods("GET") // can specify which methods can access which route.
+	h.Router.HandleFunc("/api/comments", h.GetAllComments).Methods("GET")
 	h.Router.HandleFunc("/api/comment", h.PostComment).Methods("POST")
 	h.Router.HandleFunc("/api/comment/{id}", h.GetComment).Methods("GET")
 	h.Router.HandleFunc("/api/comment/{id}", h.DeleteComment).Methods("DELETE")
@@ -44,7 +44,7 @@ func (h *Handler) SetupRoutes() {
 	h.Router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		// take note of this, this is cool.
+
 		if err := json.NewEncoder(w).Encode(Response{Message: "I am alive and well :0"}); err != nil {
 			panic(err)
 		}
@@ -56,7 +56,7 @@ func (h *Handler) GetAllComments(w http.ResponseWriter, r *http.Request) {
 	comments, err := h.Service.GetAllComments()
 	SendErrorResponse(w, "failed to retrieve all comments.", err)
 
-	if err := sendOKResponse(w, comments); err != nil {
+	if err := sendOK(w, comments); err != nil {
 		panic(err)
 	}
 }
@@ -71,7 +71,7 @@ func (h *Handler) PostComment(w http.ResponseWriter, r *http.Request) {
 	comment, err = h.Service.PostComment(comment)
 	SendErrorResponse(w, "failed to post new comment.", err)
 
-	if err := sendOKResponse(w, comment); err != nil {
+	if err := sendOK(w, comment); err != nil {
 		panic(err)
 	}
 }
@@ -89,7 +89,7 @@ func (h *Handler) GetComment(w http.ResponseWriter, r *http.Request) {
 	comment, err := h.Service.GetComment(uint(i))
 	SendErrorResponse(w, "error retrieving comment by ID.", err)
 
-	if err := sendOKResponse(w, comment); err != nil {
+	if err := sendOK(w, comment); err != nil {
 		panic(err)
 	}
 }
@@ -110,7 +110,7 @@ func (h *Handler) UpdateComment(w http.ResponseWriter, r *http.Request) {
 	comment, err = h.Service.UpdateComment(uint(commentID), comment)
 	SendErrorResponse(w, "failed to update comment", err)
 
-	if err := sendOKResponse(w, comment); err != nil {
+	if err := sendOK(w, comment); err != nil {
 		panic(err)
 	}
 }
@@ -126,7 +126,7 @@ func (h *Handler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 	err = h.Service.DeleteComment(uint(commentID)) //always remember to cast!
 	SendErrorResponse(w, "Failed to delete comment by ID", err)
 
-	err = sendOKResponse(w, Response{Message: "successfully deleted"})
+	err = sendOK(w, Response{Message: "successfully deleted"})
 	if err != nil {
 		panic(err)
 	}
@@ -135,7 +135,7 @@ func (h *Handler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 // this is the hardest func known to man. This is too smart.
 // |
 // v
-func sendOKResponse(w http.ResponseWriter, resp interface{}) error {
+func sendOK(w http.ResponseWriter, resp interface{}) error {
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
